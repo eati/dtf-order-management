@@ -1,0 +1,91 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Customer {
+  id              Int      @id @default(autoincrement())
+  name            String
+  email           String
+  phone           String
+  
+  // Számlázási adatok
+  billingName     String
+  billingZip      String
+  billingCity     String
+  billingAddress  String
+  
+  // Cég adatok (opcionális)
+  companyName     String?
+  taxNumber       String?
+  
+  // Szállítási adatok (opcionális)
+  shippingName    String?
+  shippingZip     String?
+  shippingCity    String?
+  shippingAddress String?
+  
+  note            String?
+  createdAt       DateTime @default(now())
+  orders          Order[]
+}
+
+model Order {
+  id                   Int      @id @default(autoincrement())
+  orderNumber          String   @unique
+  customerId           Int
+  customer             Customer @relation(fields: [customerId], references: [id])
+  
+  // Méretek
+  widthMm              Int      @default(300)
+  lengthMm             Int
+  squareMeters         Float
+  
+  // Árazás
+  productNetPrice      Float
+  productVat           Float
+  shippingNetPrice     Float    @default(0)
+  shippingVat          Float    @default(0)
+  codNetPrice          Float    @default(0) // utánvét díj
+  codVat               Float    @default(0)
+  totalNet             Float
+  totalVat             Float
+  totalGross           Float
+  
+  // Rendelés adatok
+  description          String?
+  shippingMethod       String   // "személyes" | "gls"
+  shippingAddress      String?
+  paymentMethod        String   // "előre_utalás" | "személyes_átvétel" | "utánvét" | "utalás" | "havi_elszámolás"
+  paymentDate          DateTime?
+  
+  // GLS adatok
+  glsParcelNumber      String?  // GLS csomag követési szám
+  glsLabelUrl          String?  // Címke PDF URL
+  glsStatus            String?  // GLS státusz
+  
+  // Státuszok
+  orderStatus          String   @default("új") // "új" | "gyártásban" | "kész" | "kiszállítva" | "lezárva"
+  paymentStatus        String   @default("nem_fizetve") // "nem_fizetve" | "fizetve" | "részben_fizetve"
+  invoiceStatus        String   @default("nincs_számla") // "nincs_számla" | "kiállítva" | "sztornózva"
+  invoiceNumber        String?
+  
+  deadline             DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Pricing {
+  id              Int      @id @default(autoincrement())
+  pricePerSqm     Float    @default(6800)
+  vatRate         Float    @default(27)
+  glsPrice        Float    @default(1490)
+  codPrice        Float    @default(600)
+  validFrom       DateTime @default(now())
+}
