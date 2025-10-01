@@ -69,6 +69,7 @@ model Order {
   glsParcelNumber      String?  // GLS csomag követési szám
   glsLabelUrl          String?  // Címke PDF URL
   glsStatus            String?  // GLS státusz
+  glsTrackingUrl       String?  // GLS nyomkövetési URL
   
   // Státuszok
   orderStatus          String   @default("új") // "új" | "gyártásban" | "kész" | "kiszállítva" | "lezárva"

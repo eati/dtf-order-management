@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { glsService } from '@/lib/gls-service';
+import { glsClient } from '@/lib/gls-client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     const city = zipMatch ? zipMatch[2] : zipCity;
 
     // GLS csomag létrehozása
-    const glsResult = await glsService.createParcel({
+    const glsResult = await glsClient.createParcel({
       name: order.customer.shippingName || order.customer.name,
       address: street,
       city: city,
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     if (!glsResult.success) {
       return NextResponse.json(
-        { error: glsResult.error },
+        { error: glsResult.error || 'Hiba a GLS címke létrehozása során' },
         { status: 500 }
       );
     }
@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
       data: {
         glsParcelNumber: glsResult.parcelNumber,
         glsLabelUrl: glsResult.labelUrl,
+        glsTrackingUrl: glsResult.trackingUrl,
         glsStatus: 'Címke létrehozva'
       }
     });
@@ -80,6 +81,7 @@ export async function POST(request: NextRequest) {
       success: true,
       parcelNumber: glsResult.parcelNumber,
       labelUrl: glsResult.labelUrl,
+      trackingUrl: glsResult.trackingUrl,
       order: updatedOrder
     });
 

@@ -15,6 +15,7 @@ export default function OrderDetails({ orderId, onClose, onSuccess }: OrderDetai
   const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [creatingGLS, setCreatingGLS] = useState(false);
+  const [glsError, setGlsError] = useState('');
 
   const [editData, setEditData] = useState({
     orderStatus: '',
@@ -99,6 +100,8 @@ export default function OrderDetails({ orderId, onClose, onSuccess }: OrderDetai
     if (!confirm('Biztosan létrehozod a GLS címkét?')) return;
     
     setCreatingGLS(true);
+    setGlsError('');
+    
     try {
       const response = await fetch('/api/gls/create-parcel', {
         method: 'POST',
@@ -109,16 +112,21 @@ export default function OrderDetails({ orderId, onClose, onSuccess }: OrderDetai
       const data = await response.json();
       
       if (!response.ok) {
-        alert(data.error || 'Hiba történt a GLS címke létrehozása során');
+        setGlsError(data.error || 'Hiba történt a GLS címke létrehozása során');
         return;
       }
 
+      // Frissítjük a rendelés adatokat
+      const updatedOrderResponse = await fetch(`/api/orders/${orderId}`);
+      if (updatedOrderResponse.ok) {
+        const updatedOrder = await updatedOrderResponse.json();
+        setOrder(updatedOrder);
+      }
+
       alert(`GLS címke sikeresen létrehozva!\nCsomagszám: ${data.parcelNumber}`);
-      
-      // Oldal frissítése
-      window.location.reload();
     } catch (error) {
-      alert('Hiba történt a GLS címke létrehozása során');
+      console.error('GLS error:', error);
+      setGlsError('Hiba történt a GLS címke létrehozása során');
     } finally {
       setCreatingGLS(false);
     }
@@ -319,6 +327,18 @@ export default function OrderDetails({ orderId, onClose, onSuccess }: OrderDetai
                             <span className="ml-2">{order.glsStatus}</span>
                           </div>
                         )}
+                        {order.glsTrackingUrl && (
+                          <div>
+                            <a
+                              href={order.glsTrackingUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm"
+                            >
+                              🔍 Nyomkövetés
+                            </a>
+                          </div>
+                        )}
                         {order.glsLabelUrl && (
                           <div>
                             <a
@@ -333,12 +353,24 @@ export default function OrderDetails({ orderId, onClose, onSuccess }: OrderDetai
                       </>
                     ) : (
                       <div>
+                        {glsError && (
+                          <div className="mb-2 p-2 bg-red-50 border border-red-200 text-red-700 text-xs rounded">
+                            {glsError}
+                          </div>
+                        )}
                         <button
                           onClick={handleCreateGLS}
                           disabled={creatingGLS}
-                          className="mt-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium text-sm disabled:bg-gray-400"
+                          className="mt-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
-                          {creatingGLS ? 'Létrehozás...' : '📦 GLS címke létrehozása'}
+                          {creatingGLS ? (
+                            <>
+                              <span className="inline-block animate-spin mr-2">⏳</span>
+                              Létrehozás...
+                            </>
+                          ) : (
+                            '📦 GLS címke létrehozása'
+                          )}
                         </button>
                         <p className="text-xs text-gray-500 mt-1">Még nem lett létrehozva GLS címke</p>
                       </div>
