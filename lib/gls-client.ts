@@ -254,10 +254,10 @@ export class GLSClient {
 
   private extractLabelUrl(xml: string): string {
     const patterns = [
-      /<Labels>(.*?)<\/Labels>/is,
-      /<ns\d*:Labels>(.*?)<\/ns\d*:Labels>/is,
-      /<PrintData>(.*?)<\/PrintData>/is,
-      /<ns\d*:PrintData>(.*?)<\/ns\d*:PrintData>/is,
+      /<Labels>([\s\S]*?)<\/Labels>/i,
+      /<ns\d*:Labels>([\s\S]*?)<\/ns\d*:Labels>/i,
+      /<PrintData>([\s\S]*?)<\/PrintData>/i,
+      /<ns\d*:PrintData>([\s\S]*?)<\/ns\d*:PrintData>/i,
     ];
 
     for (const pattern of patterns) {
