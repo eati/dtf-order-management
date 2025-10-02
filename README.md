@@ -9,7 +9,7 @@ DTF nyomtatási rendelések kezelésére szolgáló Next.js alkalmazás GLS inte
 - 🚚 **GLS Integráció** - Automatikus címkekészítés és nyomkövetés
 - 💰 **Árazás** - Dinamikus árkalkuláció m² alapján
 - 📊 **Statisztikák** - Rendelési és bevételi kimutatások
-- 🧾 **Számlázás** - Számla státusz követés
+- 🧾 **Számlázz.hu Integráció** - Automatikus számla kiállítás és sztornózás
 
 ## 🚀 Gyors Indítás
 
@@ -46,7 +46,9 @@ Nyisd meg a böngészőben: [http://localhost:3000](http://localhost:3000)
 
 - **[GLS_SETUP.md](GLS_SETUP.md)** - GLS integráció beállítási útmutató
 - **[docs/GLS_INTEGRATION.md](docs/GLS_INTEGRATION.md)** - GLS API dokumentáció
+- **[docs/SZAMLAZZ_INTEGRATION.md](docs/SZAMLAZZ_INTEGRATION.md)** - Számlázz.hu integráció útmutató
 - **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Implementáció összefoglaló
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Vercel deployment útmutató
 
 ## 🔧 Technológiák
 
@@ -104,6 +106,12 @@ GLS_API_URL=https://api.mygls.hu/ParcelService.svc
 GLS_CLIENT_NUMBER=your_client_number
 GLS_USERNAME=your_username
 GLS_PASSWORD=your_password
+
+# Számlázz.hu API
+SZAMLAZZ_API_KEY=your_szamlazz_api_key
+SZAMLAZZ_INVOICE_PREFIX="DTF"
+SZAMLAZZ_BANK_NAME="OTP Bank"
+SZAMLAZZ_BANK_ACCOUNT="12345678-12345678-12345678"
 
 # Feladó adatok
 SENDER_NAME="DTF Nyomda Kft."

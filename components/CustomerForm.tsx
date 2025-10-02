@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getCityByZipCode, isValidZipCode } from '@/lib/zipCodes';
 
 interface CustomerFormProps {
   onClose: () => void;
@@ -53,6 +54,30 @@ export default function CustomerForm({ onClose, onSuccess, editData }: CustomerF
   const [isCompany, setIsCompany] = useState(!!editData?.companyName);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Irányítószám változás kezelése - számlázási cím
+  const handleBillingZipChange = (zip: string) => {
+    setFormData({ ...formData, billingZip: zip });
+    
+    if (isValidZipCode(zip)) {
+      const city = getCityByZipCode(zip);
+      if (city) {
+        setFormData(prev => ({ ...prev, billingZip: zip, billingCity: city }));
+      }
+    }
+  };
+
+  // Irányítószám változás kezelése - szállítási cím
+  const handleShippingZipChange = (zip: string) => {
+    setFormData({ ...formData, shippingZip: zip });
+    
+    if (isValidZipCode(zip)) {
+      const city = getCityByZipCode(zip);
+      if (city) {
+        setFormData(prev => ({ ...prev, shippingZip: zip, shippingCity: city }));
+      }
+    }
+  };
 
   const handleSameAsBillingChange = (checked: boolean) => {
     setSameAsBilling(checked);
@@ -240,11 +265,15 @@ export default function CustomerForm({ onClose, onSuccess, editData }: CustomerF
                 <input
                   type="text"
                   required
+                  maxLength={4}
                   value={formData.billingZip}
-                  onChange={(e) => setFormData({ ...formData, billingZip: e.target.value })}
+                  onChange={(e) => handleBillingZipChange(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="1234"
                 />
+                {formData.billingZip && isValidZipCode(formData.billingZip) && getCityByZipCode(formData.billingZip) && (
+                  <p className="mt-1 text-xs text-green-600">✓ Település automatikusan kitöltve</p>
+                )}
               </div>
 
               <div className="md:col-span-2">
@@ -314,11 +343,15 @@ export default function CustomerForm({ onClose, onSuccess, editData }: CustomerF
                 <input
                   type="text"
                   disabled={sameAsBilling}
+                  maxLength={4}
                   value={formData.shippingZip}
-                  onChange={(e) => setFormData({ ...formData, shippingZip: e.target.value })}
+                  onChange={(e) => handleShippingZipChange(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
                   placeholder="1234"
                 />
+                {!sameAsBilling && formData.shippingZip && isValidZipCode(formData.shippingZip) && getCityByZipCode(formData.shippingZip) && (
+                  <p className="mt-1 text-xs text-green-600">✓ Település automatikusan kitöltve</p>
+                )}
               </div>
 
               <div className="md:col-span-2">

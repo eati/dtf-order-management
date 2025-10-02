@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import InvoiceActions from './InvoiceActions';
 
 interface OrderDetailsProps {
   orderId: number;
@@ -28,8 +29,7 @@ export default function OrderDetails({ orderId, onClose, onSuccess }: OrderDetai
   });
 
   // Rendelés betöltése
-  useEffect(() => {
-    const loadOrder = async () => {
+  const loadOrder = async () => {
       try {
         const response = await fetch(`/api/orders/${orderId}`);
         if (!response.ok) throw new Error('Hiba a rendelés betöltése során');
@@ -45,13 +45,14 @@ export default function OrderDetails({ orderId, onClose, onSuccess }: OrderDetai
           description: data.description || '',
           deadline: data.deadline ? data.deadline.split('T')[0] : '',
         });
-      } catch (err) {
-        setError('Hiba történt a rendelés betöltése során');
-      } finally {
-        setLoading(false);
-      }
-    };
+    } catch (err) {
+      setError('Hiba történt a rendelés betöltése során');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadOrder();
   }, [orderId]);
 
@@ -513,7 +514,7 @@ export default function OrderDetails({ orderId, onClose, onSuccess }: OrderDetai
                   </div>
                   {order.paymentDate && (
                     <p className="text-xs text-gray-500 mt-1">
-                      Fizetés dátuma: {new Date(order.paymentDate).toLocaleDateString('hu-HU')}
+                      Fizetés dátuma: {new Intl.DateTimeFormat('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(order.paymentDate))}
                     </p>
                   )}
                 </div>
@@ -529,11 +530,32 @@ export default function OrderDetails({ orderId, onClose, onSuccess }: OrderDetai
                     <p className="text-xs text-gray-500 mt-1">Számla szám: {order.invoiceNumber}</p>
                   )}
                 </div>
+              </div>
+
+              {/* Számlázz.hu integráció */}
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                <h3 className="text-lg font-semibold text-purple-900 mb-3">📄 Számlázás (Számlázz.hu)</h3>
+                <InvoiceActions
+                  orderId={order.id}
+                  invoiceStatus={order.invoiceStatus}
+                  invoiceNumber={order.invoiceNumber}
+                  onInvoiceCreated={() => {
+                    loadOrder();
+                    onSuccess();
+                  }}
+                  onInvoiceCancelled={() => {
+                    loadOrder();
+                    onSuccess();
+                  }}
+                />
+              </div>
+
+              <div className="space-y-3">
                 {order.deadline && (
                   <div>
                     <span className="text-sm text-gray-600">Határidő:</span>
                     <p className="text-sm font-medium text-gray-900 mt-1">
-                      {new Date(order.deadline).toLocaleDateString('hu-HU')}
+                      {new Intl.DateTimeFormat('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(order.deadline))}
                     </p>
                   </div>
                 )}
