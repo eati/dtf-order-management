@@ -494,71 +494,73 @@ export default function OrderDetails({ orderId, onClose, onSuccess }: OrderDetai
                 </div>
               </div>
             ) : (
-              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Státuszok</h3>
-                <div>
-                  <span className="text-sm text-gray-600">Rendelés státusz:</span>
-                  <div className="mt-1">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[order.orderStatus]}`}>
-                      {order.orderStatus}
-                    </span>
+              <>
+                <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Státuszok</h3>
+                  <div>
+                    <span className="text-sm text-gray-600">Rendelés státusz:</span>
+                    <div className="mt-1">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[order.orderStatus]}`}>
+                        {order.orderStatus}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-600">Fizetési státusz:</span>
+                    <div className="mt-1">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${paymentStatusColors[order.paymentStatus]}`}>
+                        {order.paymentStatus === 'fizetve' ? 'Fizetve' :
+                         order.paymentStatus === 'részben_fizetve' ? 'Részben fizetve' : 'Nem fizetve'}
+                      </span>
+                    </div>
+                    {order.paymentDate && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Fizetés dátuma: {new Intl.DateTimeFormat('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(order.paymentDate))}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-600">Számlázási státusz:</span>
+                    <div className="mt-1">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${invoiceStatusColors[order.invoiceStatus]}`}>
+                        {order.invoiceStatus === 'kiállítva' ? 'Kiállítva' :
+                         order.invoiceStatus === 'sztornózva' ? 'Sztornózva' : 'Nincs számla'}
+                      </span>
+                    </div>
+                    {order.invoiceNumber && (
+                      <p className="text-xs text-gray-500 mt-1">Számla szám: {order.invoiceNumber}</p>
+                    )}
                   </div>
                 </div>
-                <div>
-                  <span className="text-sm text-gray-600">Fizetési státusz:</span>
-                  <div className="mt-1">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${paymentStatusColors[order.paymentStatus]}`}>
-                      {order.paymentStatus === 'fizetve' ? 'Fizetve' :
-                       order.paymentStatus === 'részben_fizetve' ? 'Részben fizetve' : 'Nem fizetve'}
-                    </span>
-                  </div>
-                  {order.paymentDate && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Fizetés dátuma: {new Intl.DateTimeFormat('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(order.paymentDate))}
+
+                {/* Számlázz.hu integráció */}
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <h3 className="text-lg font-semibold text-purple-900 mb-3">📄 Számlázás (Számlázz.hu)</h3>
+                  <InvoiceActions
+                    orderId={order.id}
+                    invoiceStatus={order.invoiceStatus}
+                    invoiceNumber={order.invoiceNumber}
+                    onInvoiceCreated={() => {
+                      loadOrder();
+                      onSuccess();
+                    }}
+                    onInvoiceCancelled={() => {
+                      loadOrder();
+                      onSuccess();
+                    }}
+                  />
+                </div>
+
+                {/* Határidő */}
+                {order.deadline && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <span className="text-sm text-gray-600">Határidő:</span>
+                    <p className="text-sm font-medium text-gray-900 mt-1">
+                      {new Intl.DateTimeFormat('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(order.deadline))}
                     </p>
-                  )}
-                </div>
-                <div>
-                  <span className="text-sm text-gray-600">Számlázási státusz:</span>
-                  <div className="mt-1">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${invoiceStatusColors[order.invoiceStatus]}`}>
-                      {order.invoiceStatus === 'kiállítva' ? 'Kiállítva' :
-                       order.invoiceStatus === 'sztornózva' ? 'Sztornózva' : 'Nincs számla'}
-                    </span>
                   </div>
-                  {order.invoiceNumber && (
-                    <p className="text-xs text-gray-500 mt-1">Számla szám: {order.invoiceNumber}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Számlázz.hu integráció */}
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                <h3 className="text-lg font-semibold text-purple-900 mb-3">📄 Számlázás (Számlázz.hu)</h3>
-                <InvoiceActions
-                  orderId={order.id}
-                  invoiceStatus={order.invoiceStatus}
-                  invoiceNumber={order.invoiceNumber}
-                  onInvoiceCreated={() => {
-                    loadOrder();
-                    onSuccess();
-                  }}
-                  onInvoiceCancelled={() => {
-                    loadOrder();
-                    onSuccess();
-                  }}
-                />
-              </div>
-
-              {/* Határidő */}
-              {order.deadline && (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <span className="text-sm text-gray-600">Határidő:</span>
-                  <p className="text-sm font-medium text-gray-900 mt-1">
-                    {new Intl.DateTimeFormat('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(order.deadline))}
-                  </p>
-                </div>
-              )}
+                )}
+              </>
             )}
 
             {/* Árazás */}
