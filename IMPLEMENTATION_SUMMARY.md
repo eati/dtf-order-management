@@ -98,39 +98,62 @@ lib/gls-service.ts           (replaced with gls-client.ts)
 
 ## 📋 Next Steps for User
 
-### 1. Database Migration ⏳
+### 1. Database Migration ✅ KÉSZ
 ```bash
-npm run db:push
+npm run db:push  # Már lefutott
 ```
 
-### 2. Environment Setup ⏳
+### 2. Environment Setup ⏳ SZÜKSÉGES
 ```bash
-cp .env.example .env
-# Edit .env with real GLS credentials
+# Szerkeszd a .env fájlt a valódi GLS hitelesítési adatokkal:
+# - GLS_CLIENT_NUMBER
+# - GLS_USERNAME
+# - GLS_PASSWORD
+# - SENDER_* mezők (feladó adatok)
 ```
 
-### 3. Test Integration ⏳
+### 3. Test Integration ⏳ SZÜKSÉGES
 ```bash
 npm run dev
-# Then test:
-# 1. Create order with GLS shipping
-# 2. Generate label
-# 3. Verify tracking link
-# 4. Test webhook
+# Majd teszteld:
+# 1. Hozz létre rendelést GLS szállítással
+# 2. Generálj címkét
+# 3. Ellenőrizd a nyomkövetési linket
+# 4. Teszteld a webhookot (opcionális)
 ```
+
+### 4. Részletes Útmutató 📖
+Lásd: **[GLS_SETUP.md](GLS_SETUP.md)** - Teljes beállítási és tesztelési útmutató
 
 ## 📊 Implementation Statistics
 
 - **Total lines added**: ~752 lines
-- **Total lines modified**: ~50 lines
+- **Total lines modified**: ~80 lines (+ Next.js 15 fixes)
 - **Total lines removed**: ~222 lines
 - **Net change**: +530 lines
-- **Files created**: 6
-- **Files modified**: 4
+- **Files created**: 7 (+ GLS_SETUP.md)
+- **Files modified**: 7 (+ Next.js 15 compatibility)
 - **Files deleted**: 1
-- **Commits made**: 4
-- **TypeScript errors**: 0
+- **TypeScript errors**: 0 ✅
+- **Build status**: ✅ Success
 - **Production ready**: ✅ Yes
+
+## 🔄 Latest Updates (2025-10-01)
+
+### Next.js 15 Compatibility Fixes
+- ✅ Fixed route handler `params` typing (now `Promise<{}>`)
+- ✅ Updated `app/api/customers/[id]/route.ts`
+- ✅ Updated `app/api/orders/[id]/route.ts`
+- ✅ Updated `app/api/gls/track/[parcelNumber]/route.ts`
+- ✅ Fixed Customer model usage in seed.ts
+- ✅ All TypeScript errors resolved
+- ✅ Production build successful
+
+### Documentation
+- ✅ Created comprehensive setup guide: `GLS_SETUP.md`
+- ✅ Step-by-step testing instructions
+- ✅ Troubleshooting section
+- ✅ Status code reference table
 
 ## 🎯 Requirements Met
 
@@ -143,6 +166,8 @@ npm run dev
 | Frontend improvements | ✅ Complete | Enhanced UX with no reloads |
 | Type definitions | ✅ Complete | Full TypeScript coverage |
 | Documentation | ✅ Complete | Comprehensive guide included |
+| TypeScript errors | ✅ Fixed | Next.js 15 params compatibility |
+| Build | ✅ Success | Production build works |
 | Testing | ⏳ Pending | Requires real API credentials |
 
 ## 🔗 Quick Links

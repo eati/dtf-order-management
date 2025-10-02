@@ -8,6 +8,7 @@ import Statistics from '@/components/Statistics';
 import DashboardTab from '@/components/DashboardTab';
 import OrdersTab from '@/components/OrdersTab';
 import CustomersTab from '@/components/CustomersTab';
+import MonthlyInvoicing from '@/components/MonthlyInvoicing';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -238,6 +239,9 @@ export default function Home() {
       case 'stats':
         return <Statistics />;
       
+      case 'invoicing':
+        return <MonthlyInvoicing />;
+      
       default:
         return null;
     }
@@ -260,7 +264,8 @@ export default function Home() {
               { id: 'dashboard', label: 'Dashboard' },
               { id: 'orders', label: 'Rendelések' },
               { id: 'customers', label: 'Ügyfelek' },
-              { id: 'stats', label: 'Statisztikák' }
+              { id: 'stats', label: 'Statisztikák' },
+              { id: 'invoicing', label: 'Havi Elszámolás' }
             ].map(tab => (
               <button
                 key={tab.id}

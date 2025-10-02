@@ -19,7 +19,11 @@ async function main() {
       name: 'Teszt Ügyfél Kft.',
       email: 'info@teszt.hu',
       phone: '+36 30 123 4567',
-      address: '1234 Budapest, Teszt utca 1.',
+      billingName: 'Teszt Ügyfél Kft.',
+      billingZip: '1234',
+      billingCity: 'Budapest',
+      billingAddress: 'Teszt utca 1.',
+      companyName: 'Teszt Ügyfél Kft.',
       taxNumber: '12345678-1-23',
     },
   })

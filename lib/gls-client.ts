@@ -31,12 +31,22 @@ export class GLSClient {
   async createParcel(parcelData: GLSParcelData): Promise<GLSCreateParcelResponse> {
     try {
       const xmlData = this.buildParcelXML(parcelData);
+      // REST endpoint XML formátummal
+      const fullUrl = `${this.config.apiUrl}/xml/PrintLabels`;
 
-      const response = await fetch(`${this.config.apiUrl}/PrintLabels`, {
+      console.log('=== GLS API Request Debug ===');
+      console.log('Full URL:', fullUrl);
+      console.log('API URL from config:', this.config.apiUrl);
+      console.log('Client Number:', this.config.clientNumber);
+      console.log('Username:', this.config.username);
+      console.log('Request Method:', 'POST');
+      console.log('=============================');
+
+      const response = await fetch(fullUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'text/xml; charset=utf-8',
-          'SOAPAction': 'http://api.mygls.hu/ParcelService/PrintLabels'
+          'Content-Type': 'application/xml; charset=utf-8',
+          'Accept': 'application/xml'
         },
         body: xmlData,
       });
@@ -44,10 +54,17 @@ export class GLSClient {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('GLS API Error Response:', errorText);
+        console.error('Response Status:', response.status);
+        console.error('Response Headers:', Object.fromEntries(response.headers.entries()));
         throw new Error(`GLS API error: ${response.status} ${response.statusText}`);
       }
 
       const result = await response.text();
+      
+      console.log('=== GLS API Response ===');
+      console.log('Response length:', result.length);
+      console.log('First 500 chars:', result.substring(0, 500));
+      console.log('========================');
       
       // XML válasz feldolgozása
       const parcelNumber = this.extractParcelNumber(result);
@@ -57,6 +74,7 @@ export class GLSClient {
         : undefined;
 
       if (!parcelNumber) {
+        console.error('Full GLS Response:', result);
         throw new Error('GLS API did not return a parcel number');
       }
 
@@ -82,11 +100,11 @@ export class GLSClient {
     try {
       const xmlData = this.buildPrintLabelXML(parcelNumber);
 
-      const response = await fetch(`${this.config.apiUrl}/GetPrintedLabels`, {
+      const response = await fetch(`${this.config.apiUrl}/xml/GetPrintedLabels`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'text/xml; charset=utf-8',
-          'SOAPAction': 'http://api.mygls.hu/ParcelService/GetPrintedLabels'
+          'Content-Type': 'application/xml; charset=utf-8',
+          'Accept': 'application/xml'
         },
         body: xmlData,
       });
@@ -120,11 +138,11 @@ export class GLSClient {
     try {
       const xmlData = this.buildTrackXML(parcelNumber);
 
-      const response = await fetch(`${this.config.apiUrl}/GetParcelStatuses`, {
+      const response = await fetch(`${this.config.apiUrl}/xml/GetParcelStatuses`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'text/xml; charset=utf-8',
-          'SOAPAction': 'http://api.mygls.hu/ParcelService/GetParcelStatuses'
+          'Content-Type': 'application/xml; charset=utf-8',
+          'Accept': 'application/xml'
         },
         body: xmlData,
       });
@@ -156,7 +174,7 @@ export class GLSClient {
     }
   }
 
-  // XML építők
+  // XML építők (REST API DataContract formátum)
   private buildParcelXML(data: GLSParcelData): string {
     const senderName = process.env.SENDER_NAME || 'DTF Nyomda Kft.';
     const senderAddress = process.env.SENDER_ADDRESS || 'Fő utca 1.';
@@ -167,71 +185,59 @@ export class GLSClient {
     const senderEmail = process.env.SENDER_EMAIL || 'info@dtfnyomda.hu';
 
     return `<?xml version="1.0" encoding="UTF-8"?>
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://api.mygls.hu/">
-  <SOAP-ENV:Body>
-    <ns1:PrintLabels>
-      <ns1:username>${this.escapeXml(this.config.username)}</ns1:username>
-      <ns1:password>${this.escapeXml(this.config.password)}</ns1:password>
-      <ns1:pcllist>
-        <ns1:ParcelData>
-          <ns1:ClientNumber>${this.escapeXml(this.config.clientNumber)}</ns1:ClientNumber>
-          <ns1:ClientReference>${this.escapeXml(data.reference)}</ns1:ClientReference>
-          <ns1:CODAmount>${data.codAmount || 0}</ns1:CODAmount>
-          <ns1:CODReference>${data.codAmount ? this.escapeXml(data.reference) : ''}</ns1:CODReference>
-          <ns1:Content>DTF Film</ns1:Content>
-          <ns1:Count>${data.count}</ns1:Count>
-          <ns1:DeliveryName>${this.escapeXml(data.name)}</ns1:DeliveryName>
-          <ns1:DeliveryAddress>${this.escapeXml(data.address)}</ns1:DeliveryAddress>
-          <ns1:DeliveryCity>${this.escapeXml(data.city)}</ns1:DeliveryCity>
-          <ns1:DeliveryZipCode>${this.escapeXml(data.zipCode)}</ns1:DeliveryZipCode>
-          <ns1:DeliveryContactName>${this.escapeXml(data.name)}</ns1:DeliveryContactName>
-          <ns1:DeliveryContactPhone>${this.escapeXml(data.phone)}</ns1:DeliveryContactPhone>
-          <ns1:DeliveryContactEmail>${data.email ? this.escapeXml(data.email) : ''}</ns1:DeliveryContactEmail>
-          <ns1:PickupName>${this.escapeXml(senderName)}</ns1:PickupName>
-          <ns1:PickupAddress>${this.escapeXml(senderAddress)}</ns1:PickupAddress>
-          <ns1:PickupCity>${this.escapeXml(senderCity)}</ns1:PickupCity>
-          <ns1:PickupZipCode>${this.escapeXml(senderZipcode)}</ns1:PickupZipCode>
-          <ns1:PickupContactName>${this.escapeXml(senderContactName)}</ns1:PickupContactName>
-          <ns1:PickupContactPhone>${this.escapeXml(senderPhone)}</ns1:PickupContactPhone>
-          <ns1:PickupContactEmail>${this.escapeXml(senderEmail)}</ns1:PickupContactEmail>
-          <ns1:Weight>${data.weight}</ns1:Weight>
-        </ns1:ParcelData>
-      </ns1:pcllist>
-      <ns1:printertemplate>A4_2x2</ns1:printertemplate>
-    </ns1:PrintLabels>
-  </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>`;
+<PrintLabelsRequest xmlns="http://schemas.datacontract.org/2004/07/GLS.MyGLS.ServiceData.APIDTOs.LabelOperations">
+  <Username>${this.escapeXml(this.config.username)}</Username>
+  <Password>${this.escapeXml(this.config.password)}</Password>
+  <ParcelList>
+    <ParcelData xmlns="http://schemas.datacontract.org/2004/07/GLS.MyGLS.ServiceData.APIDTOs.Common">
+      <ClientNumber>${this.escapeXml(this.config.clientNumber)}</ClientNumber>
+      <ClientReference>${this.escapeXml(data.reference)}</ClientReference>
+      <CODAmount>${data.codAmount || 0}</CODAmount>
+      <CODReference>${data.codAmount ? this.escapeXml(data.reference) : ''}</CODReference>
+      <Content>DTF Film</Content>
+      <Count>${data.count}</Count>
+      <DeliveryName>${this.escapeXml(data.name)}</DeliveryName>
+      <DeliveryAddress>${this.escapeXml(data.address)}</DeliveryAddress>
+      <DeliveryCity>${this.escapeXml(data.city)}</DeliveryCity>
+      <DeliveryZipCode>${this.escapeXml(data.zipCode)}</DeliveryZipCode>
+      <DeliveryContactName>${this.escapeXml(data.name)}</DeliveryContactName>
+      <DeliveryContactPhone>${this.escapeXml(data.phone)}</DeliveryContactPhone>
+      <DeliveryContactEmail>${data.email ? this.escapeXml(data.email) : ''}</DeliveryContactEmail>
+      <PickupName>${this.escapeXml(senderName)}</PickupName>
+      <PickupAddress>${this.escapeXml(senderAddress)}</PickupAddress>
+      <PickupCity>${this.escapeXml(senderCity)}</PickupCity>
+      <PickupZipCode>${this.escapeXml(senderZipcode)}</PickupZipCode>
+      <PickupContactName>${this.escapeXml(senderContactName)}</PickupContactName>
+      <PickupContactPhone>${this.escapeXml(senderPhone)}</PickupContactPhone>
+      <PickupContactEmail>${this.escapeXml(senderEmail)}</PickupContactEmail>
+      <Weight>${data.weight}</Weight>
+    </ParcelData>
+  </ParcelList>
+  <PrinterTemplate>A4_2x2</PrinterTemplate>
+</PrintLabelsRequest>`;
   }
 
   private buildPrintLabelXML(parcelNumber: string): string {
     return `<?xml version="1.0" encoding="UTF-8"?>
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://api.mygls.hu/">
-  <SOAP-ENV:Body>
-    <ns1:GetPrintedLabels>
-      <ns1:username>${this.escapeXml(this.config.username)}</ns1:username>
-      <ns1:password>${this.escapeXml(this.config.password)}</ns1:password>
-      <ns1:parcelIdList>
-        <ns1:long>${this.escapeXml(parcelNumber)}</ns1:long>
-      </ns1:parcelIdList>
-      <ns1:printertemplate>A4_2x2</ns1:printertemplate>
-    </ns1:GetPrintedLabels>
-  </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>`;
+<GetPrintedLabelsRequest xmlns="http://schemas.datacontract.org/2004/07/GLS.MyGLS.ServiceData.APIDTOs.LabelOperations">
+  <Username>${this.escapeXml(this.config.username)}</Username>
+  <Password>${this.escapeXml(this.config.password)}</Password>
+  <ParcelIdList>
+    <long>${this.escapeXml(parcelNumber)}</long>
+  </ParcelIdList>
+  <PrinterTemplate>A4_2x2</PrinterTemplate>
+</GetPrintedLabelsRequest>`;
   }
 
   private buildTrackXML(parcelNumber: string): string {
     return `<?xml version="1.0" encoding="UTF-8"?>
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://api.mygls.hu/">
-  <SOAP-ENV:Body>
-    <ns1:GetParcelStatuses>
-      <ns1:username>${this.escapeXml(this.config.username)}</ns1:username>
-      <ns1:password>${this.escapeXml(this.config.password)}</ns1:password>
-      <ns1:parcelNumberList>
-        <ns1:string>${this.escapeXml(parcelNumber)}</ns1:string>
-      </ns1:parcelNumberList>
-    </ns1:GetParcelStatuses>
-  </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>`;
+<GetParcelStatusesRequest xmlns="http://schemas.datacontract.org/2004/07/GLS.MyGLS.ServiceData.APIDTOs.TrackAndTrace">
+  <Username>${this.escapeXml(this.config.username)}</Username>
+  <Password>${this.escapeXml(this.config.password)}</Password>
+  <ParcelNumberList>
+    <string>${this.escapeXml(parcelNumber)}</string>
+  </ParcelNumberList>
+</GetParcelStatusesRequest>`;
   }
 
   // XML válasz parserek
