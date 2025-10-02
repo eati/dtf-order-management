@@ -550,16 +550,15 @@ export default function OrderDetails({ orderId, onClose, onSuccess }: OrderDetai
                 />
               </div>
 
-              <div className="space-y-3">
-                {order.deadline && (
-                  <div>
-                    <span className="text-sm text-gray-600">Határidő:</span>
-                    <p className="text-sm font-medium text-gray-900 mt-1">
-                      {new Intl.DateTimeFormat('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(order.deadline))}
-                    </p>
-                  </div>
-                )}
-              </div>
+              {/* Határidő */}
+              {order.deadline && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <span className="text-sm text-gray-600">Határidő:</span>
+                  <p className="text-sm font-medium text-gray-900 mt-1">
+                    {new Intl.DateTimeFormat('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(order.deadline))}
+                  </p>
+                </div>
+              )}
             )}
 
             {/* Árazás */}
