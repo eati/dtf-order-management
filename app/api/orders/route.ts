@@ -111,6 +111,21 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
     
+    // Validáció
+    if (!data.customerId || isNaN(data.customerId)) {
+      return NextResponse.json(
+        { error: 'Érvénytelen ügyfél ID' },
+        { status: 400 }
+      );
+    }
+    
+    if (!data.lengthMm || isNaN(data.lengthMm) || data.lengthMm <= 0) {
+      return NextResponse.json(
+        { error: 'Érvénytelen hosszúság' },
+        { status: 400 }
+      );
+    }
+    
     const orderNumber = await generateOrderNumber();
     const prices = calculatePrice(data.lengthMm, data.shippingMethod, data.paymentMethod);
 
@@ -134,11 +149,11 @@ export async function POST(request: NextRequest) {
         shippingMethod: data.shippingMethod,
         shippingAddress: data.shippingAddress || null,
         paymentMethod: data.paymentMethod,
-        paymentDate: data.paymentDate || null,
+        paymentDate: data.paymentDate ? new Date(data.paymentDate) : null,
         orderStatus: 'új',
         paymentStatus: 'nem_fizetve',
         invoiceStatus: 'nincs_számla',
-        deadline: data.deadline || null,
+        deadline: data.deadline ? new Date(data.deadline) : null,
       },
       include: {
         customer: true
@@ -148,8 +163,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
     console.error('Hiba a rendelés létrehozása során:', error);
+    
+    // Részletesebb hibaüzenet
+    const errorMessage = error instanceof Error ? error.message : 'Ismeretlen hiba';
+    
     return NextResponse.json(
-      { error: 'Hiba történt a rendelés létrehozása során' },
+      { 
+        error: 'Hiba történt a rendelés létrehozása során',
+        details: errorMessage
+      },
       { status: 500 }
     );
   }
